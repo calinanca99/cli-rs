@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::{fs::File, io::Read};
 
 use clap::Parser;
 
@@ -24,8 +24,21 @@ struct Cli {
     words: bool,
 }
 
+fn get_bytes(path: &str) -> usize {
+    let mut file = File::open(path).expect("File not found");
+    let mut s = String::new();
+
+    let bytes = file.read_to_string(&mut s).expect("Cannot read from file");
+
+    bytes
+}
+
 fn main() {
     let cli = Cli::parse();
+
+    let lines = 0;
+    let words = 0;
+    let mut bytes = 0;
 
     for file_path in &cli.file {
         let file = File::open(file_path).expect("File not found");
@@ -34,10 +47,21 @@ fn main() {
 
         if file_metadata.is_dir() {
             println!("wc-rs: {file_path}: Is a directory");
-            println!("\t0\t0\t0 {file_path}");
+            println!("0 0 0 {file_path}");
+        } else {
+            let file_lines = 0;
+            let file_words = 0;
+            let file_bytes = get_bytes(file_path);
+
+            bytes += get_bytes(file_path);
+
+            println!("{file_lines} {file_words} {file_bytes} {file_path}");
         }
     }
-    println!("\t0\t0\t0 total");
+
+    if cli.file.len() > 1 {
+        println!("{lines} {words} {bytes} total");
+    }
 
     // dbg!(cli);
 }
