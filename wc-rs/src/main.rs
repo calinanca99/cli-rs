@@ -33,11 +33,20 @@ fn get_bytes(path: &str) -> usize {
     bytes
 }
 
+fn get_words(path: &str) -> usize {
+    let mut file = File::open(path).expect("File not found");
+    let mut s = String::new();
+
+    let _ = file.read_to_string(&mut s).expect("Cannot read from file");
+
+    s.as_str().split_whitespace().collect::<Vec<_>>().len()
+}
+
 fn main() {
     let cli = Cli::parse();
 
     let lines = 0;
-    let words = 0;
+    let mut words = 0;
     let mut bytes = 0;
 
     for file_path in &cli.file {
@@ -50,10 +59,11 @@ fn main() {
             println!("0 0 0 {file_path}");
         } else {
             let file_lines = 0;
-            let file_words = 0;
+            let file_words = get_words(file_path);
             let file_bytes = get_bytes(file_path);
 
-            bytes += get_bytes(file_path);
+            words += file_words;
+            bytes += file_bytes;
 
             println!("{file_lines} {file_words} {file_bytes} {file_path}");
         }
