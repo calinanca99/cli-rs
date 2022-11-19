@@ -1,3 +1,5 @@
+use std::fs::File;
+
 use clap::Parser;
 
 #[derive(Debug, Parser)]
@@ -25,5 +27,17 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-    dbg!(cli);
+    for file_path in &cli.file {
+        let file = File::open(file_path).expect("File not found");
+
+        let file_metadata = file.metadata().unwrap();
+
+        if file_metadata.is_dir() {
+            println!("wc-rs: {file_path}: Is a directory");
+            println!("\t0\t0\t0 {file_path}");
+        }
+    }
+    println!("\t0\t0\t0 total");
+
+    // dbg!(cli);
 }
