@@ -36,6 +36,11 @@ fn get_lines(s: &str) -> usize {
     s.split('\n').collect::<Vec<_>>().len() - 1
 }
 
+#[allow(dead_code)]
+fn get_chars(s: &str) -> usize {
+    s.chars().collect::<Vec<_>>().len()
+}
+
 fn print_count(file_lines: usize, file_words: usize, file_bytes: usize, file_path: &str) {
     println!("{file_lines} {file_words} {file_bytes} {file_path}");
 }
