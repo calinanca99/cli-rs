@@ -42,10 +42,19 @@ fn get_words(path: &str) -> usize {
     s.as_str().split_whitespace().collect::<Vec<_>>().len()
 }
 
+fn get_lines(path: &str) -> usize {
+    let mut file = File::open(path).expect("File not found");
+    let mut s = String::new();
+
+    let _ = file.read_to_string(&mut s).expect("Cannot read from file");
+
+    s.as_str().split('\n').collect::<Vec<_>>().len() - 1
+}
+
 fn main() {
     let cli = Cli::parse();
 
-    let lines = 0;
+    let mut lines = 0;
     let mut words = 0;
     let mut bytes = 0;
 
@@ -58,10 +67,11 @@ fn main() {
             println!("wc-rs: {file_path}: Is a directory");
             println!("0 0 0 {file_path}");
         } else {
-            let file_lines = 0;
+            let file_lines = get_lines(file_path);
             let file_words = get_words(file_path);
             let file_bytes = get_bytes(file_path);
 
+            lines += file_lines;
             words += file_words;
             bytes += file_bytes;
 
