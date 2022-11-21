@@ -18,6 +18,44 @@ impl FileCount {
     }
 }
 
+pub enum EnumCount {
+    Lines,
+    Words,
+    Bytes,
+}
+
+pub fn set_count(file_count: &mut FileCount, s: &String, count: EnumCount) {
+    match count {
+        EnumCount::Lines => match file_count.dir {
+            true => {
+                let file_lines = get_lines(s);
+                file_count.lines = Some(file_lines);
+            }
+            false => {
+                file_count.lines = Some(0);
+            }
+        },
+        EnumCount::Words => match file_count.dir {
+            true => {
+                let file_words = get_words(&s);
+                file_count.words = Some(file_words);
+            }
+            false => {
+                file_count.words = Some(0);
+            }
+        },
+        EnumCount::Bytes => match file_count.dir {
+            true => {
+                let file_bytes = get_bytes(&s);
+                file_count.bytes = Some(file_bytes);
+            }
+            false => {
+                file_count.bytes = Some(0);
+            }
+        },
+    }
+}
+
 pub fn get_bytes(s: &str) -> usize {
     s.len()
 }

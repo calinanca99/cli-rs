@@ -3,11 +3,6 @@ use std::{fs::File, io::Read};
 
 use wc_rs::{cli::Cli, file::*};
 
-/*
-    Replicate the wc behavior without:
-    - total line count
-    - looking at files
-*/
 fn main() {
     let mut cli = Cli::parse();
 
@@ -33,39 +28,15 @@ fn main() {
         }
 
         if cli.lines {
-            match file_count.dir {
-                true => {
-                    let file_lines = get_lines(&s);
-                    file_count.lines = Some(file_lines);
-                }
-                false => {
-                    file_count.lines = Some(0);
-                }
-            }
+            set_count(&mut file_count, &s, EnumCount::Lines);
         }
 
         if cli.words {
-            match file_count.dir {
-                true => {
-                    let file_words = get_words(&s);
-                    file_count.words = Some(file_words);
-                }
-                false => {
-                    file_count.words = Some(0);
-                }
-            }
+            set_count(&mut file_count, &s, EnumCount::Words);
         }
 
         if cli.bytes {
-            match file_count.dir {
-                true => {
-                    let file_bytes = get_bytes(&s);
-                    file_count.bytes = Some(file_bytes);
-                }
-                false => {
-                    file_count.bytes = Some(0);
-                }
-            }
+            set_count(&mut file_count, &s, EnumCount::Bytes);
         }
 
         file_counts.push(file_count);
@@ -75,15 +46,15 @@ fn main() {
         let mut to_print = String::new();
 
         if file_count.lines.is_some() {
-            to_print.push_str(format!("{} ", file_count.lines.unwrap()).as_str());
+            add_to_print(&mut to_print, file_count.lines.unwrap());
         }
 
         if file_count.words.is_some() {
-            to_print.push_str(format!("{} ", file_count.words.unwrap()).as_str());
+            add_to_print(&mut to_print, file_count.words.unwrap());
         }
 
         if file_count.bytes.is_some() {
-            to_print.push_str(format!("{} ", file_count.bytes.unwrap()).as_str());
+            add_to_print(&mut to_print, file_count.bytes.unwrap());
         }
 
         to_print.push_str(file_count.path.as_str());
@@ -94,6 +65,8 @@ fn main() {
 
         println!("{to_print}");
     }
+}
 
-    // dbg!(cli);
+fn add_to_print(to_print: &mut String, count: usize) {
+    to_print.push_str(format!("{} ", count).as_str())
 }
