@@ -26,7 +26,7 @@ pub enum EnumCount {
 
 pub fn set_count(file_count: &mut FileCount, s: &String, count: EnumCount) {
     match count {
-        EnumCount::Lines => match file_count.dir {
+        EnumCount::Lines => match !file_count.dir {
             true => {
                 let file_lines = get_lines(s);
                 file_count.lines = Some(file_lines);
@@ -35,18 +35,18 @@ pub fn set_count(file_count: &mut FileCount, s: &String, count: EnumCount) {
                 file_count.lines = Some(0);
             }
         },
-        EnumCount::Words => match file_count.dir {
+        EnumCount::Words => match !file_count.dir {
             true => {
-                let file_words = get_words(&s);
+                let file_words = get_words(s);
                 file_count.words = Some(file_words);
             }
             false => {
                 file_count.words = Some(0);
             }
         },
-        EnumCount::Bytes => match file_count.dir {
+        EnumCount::Bytes => match !file_count.dir {
             true => {
-                let file_bytes = get_bytes(&s);
+                let file_bytes = get_bytes(s);
                 file_count.bytes = Some(file_bytes);
             }
             false => {
