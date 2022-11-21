@@ -1,83 +1,98 @@
+use clap::Parser;
 use std::{fs::File, io::Read};
 
-use clap::Parser;
+use wc_rs::{cli::Cli, file::*};
 
-#[derive(Debug, Parser)]
-#[command(name = "wc-rs")]
-#[command(version = "1.0")]
-#[command(about = "wc-rs: wc (partially) ported to Rust")]
-
-struct Cli {
-    #[arg(help = "FILEs to read")]
-    file: Vec<String>,
-
-    #[arg(short = 'c', long = "bytes", help = "Print the byte counts")]
-    bytes: bool,
-
-    #[arg(short = 'm', long = "chars", help = "Print the character counts")]
-    chars: bool,
-
-    #[arg(short = 'l', long = "lines", help = "Print the newline counts")]
-    lines: bool,
-
-    #[arg(short = 'w', long = "words", help = "Print the word counts")]
-    words: bool,
-}
-
-fn get_bytes(s: &str) -> usize {
-    s.len()
-}
-
-fn get_words(s: &str) -> usize {
-    s.split_whitespace().collect::<Vec<_>>().len()
-}
-
-fn get_lines(s: &str) -> usize {
-    s.split('\n').collect::<Vec<_>>().len() - 1
-}
-
-#[allow(dead_code)]
-fn get_chars(s: &str) -> usize {
-    s.chars().collect::<Vec<_>>().len()
-}
-
-fn print_count(file_lines: usize, file_words: usize, file_bytes: usize, file_path: &str) {
-    println!("{file_lines} {file_words} {file_bytes} {file_path}");
-}
-
+/*
+    Replicate the wc behavior without:
+    - total line count
+    - looking at files
+*/
 fn main() {
-    let cli = Cli::parse();
+    let mut cli = Cli::parse();
 
-    let mut lines = 0;
-    let mut words = 0;
-    let mut bytes = 0;
+    let mut file_counts = Vec::with_capacity(cli.file.len());
 
     for file_path in &cli.file {
         let mut file = File::open(file_path).expect("File not found");
 
-        let file_metadata = file.metadata().unwrap();
+        let mut file_count = FileCount::new(file_path.to_string());
+        file_count.dir = file.metadata().unwrap().is_dir();
 
-        if file_metadata.is_dir() {
-            println!("wc-rs: {file_path}: Is a directory");
-            print_count(0, 0, 0, file_path);
-        } else {
-            let mut s = String::new();
+        let mut s = String::new();
+
+        if !file_count.dir {
             file.read_to_string(&mut s).expect("Cannot read file");
-
-            let file_lines = get_lines(&s);
-            let file_words = get_words(&s);
-            let file_bytes = get_bytes(&s);
-
-            lines += file_lines;
-            words += file_words;
-            bytes += file_bytes;
-
-            print_count(file_lines, file_words, file_bytes, file_path);
         }
+
+        // Handle case when no flags are passed
+        if !cli.lines && !cli.words && !cli.bytes {
+            cli.lines = true;
+            cli.words = true;
+            cli.bytes = true;
+        }
+
+        if cli.lines {
+            match file_count.dir {
+                true => {
+                    let file_lines = get_lines(&s);
+                    file_count.lines = Some(file_lines);
+                }
+                false => {
+                    file_count.lines = Some(0);
+                }
+            }
+        }
+
+        if cli.words {
+            match file_count.dir {
+                true => {
+                    let file_words = get_words(&s);
+                    file_count.words = Some(file_words);
+                }
+                false => {
+                    file_count.words = Some(0);
+                }
+            }
+        }
+
+        if cli.bytes {
+            match file_count.dir {
+                true => {
+                    let file_bytes = get_bytes(&s);
+                    file_count.bytes = Some(file_bytes);
+                }
+                false => {
+                    file_count.bytes = Some(0);
+                }
+            }
+        }
+
+        file_counts.push(file_count);
     }
 
-    if cli.file.len() > 1 {
-        println!("{lines} {words} {bytes} total");
+    for file_count in &file_counts {
+        let mut to_print = String::new();
+
+        if file_count.lines.is_some() {
+            to_print.push_str(format!("{} ", file_count.lines.unwrap()).as_str());
+        }
+
+        if file_count.words.is_some() {
+            to_print.push_str(format!("{} ", file_count.words.unwrap()).as_str());
+        }
+
+        if file_count.bytes.is_some() {
+            to_print.push_str(format!("{} ", file_count.bytes.unwrap()).as_str());
+        }
+
+        to_print.push_str(file_count.path.as_str());
+
+        if file_count.dir {
+            println! {"wc-rs: {}: Is a directory", file_count.path};
+        }
+
+        println!("{to_print}");
     }
 
     // dbg!(cli);
